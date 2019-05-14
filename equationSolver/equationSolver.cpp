@@ -19,7 +19,9 @@ double EquationSolver::solve(int l, int r, string &equation){
             numbers[l].pop();
             return num;
         }
-        else return variables[equation[l]];
+        else{
+            return variables[equation[l]];
+        }
     }
     
     unordered_map<char, int> op_pos;
@@ -29,11 +31,16 @@ double EquationSolver::solve(int l, int r, string &equation){
         }
     }
 
-    if(op_pos.find('+') != op_pos.end()) return solve(l, op_pos['+']-1, equation) + solve(op_pos['+']+1, r, equation);
-    if(op_pos.find('-') != op_pos.end()) return solve(l, op_pos['-']-1, equation) - solve(op_pos['-']+1, r, equation);
-    if(op_pos.find('*') != op_pos.end()) return solve(l, op_pos['*']-1, equation) * solve(op_pos['*']+1, r, equation);
-    if(op_pos.find('/') != op_pos.end()) return solve(l, op_pos['/']-1, equation) / solve(op_pos['/']+1, r, equation);
-    if(op_pos.find('^') != op_pos.end()) return pow(solve(l, op_pos['^']-1, equation), solve(op_pos['^']+1, r, equation));
+    if(op_pos.find('+') != op_pos.end())
+        return solve(l, op_pos['+']-1, equation) + solve(op_pos['+']+1, r, equation);
+    if(op_pos.find('-') != op_pos.end())
+        return solve(l, op_pos['-']-1, equation) - solve(op_pos['-']+1, r, equation);
+    if(op_pos.find('*') != op_pos.end()) 
+        return solve(l, op_pos['*']-1, equation) * solve(op_pos['*']+1, r, equation);
+    if(op_pos.find('/') != op_pos.end())
+        return solve(l, op_pos['/']-1, equation) / solve(op_pos['/']+1, r, equation);
+    if(op_pos.find('^') != op_pos.end())
+        return pow(solve(l, op_pos['^']-1, equation), solve(op_pos['^']+1, r, equation));
 
     return 0;
 }
@@ -70,14 +77,14 @@ void EquationSolver::simplify_sign(){
 void EquationSolver::format_equation(string &equation){
     string formated_equation;
     for(int i = 0; i<equation.size(); i++){
-        if((equation[i] < '0' || equation[i] > '9') && equation[i] != '-' && equation[i] != '+' && equation[i] != '('){
-            formated_equation += equation[i];
+        if((equation[i] >= '0' && equation[i] <= '9') || equation[i] == '-' || equation[i] == '+') {
+            map_number(i, equation, formated_equation);
         }
         else if(equation[i] == '('){
             solve_bracket(i, equation, formated_equation);
         }
         else{
-            map_number(i, equation, formated_equation);
+            formated_equation += equation[i];
         }
     }
     equation = formated_equation;
