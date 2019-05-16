@@ -47,7 +47,8 @@ double EquationSolver::solve(int l, int r){
     if(op_pos.find('^') != op_pos.end()){
         return pow(solve(l, op_pos['^']-1), solve(op_pos['^']+1, r));
     }
-
+    
+    throw invalid_argument("There is an error in the equation " + equation + ".");    
     return 0;
 }
 
@@ -62,6 +63,11 @@ void EquationSolver::map_variables(){
 
 void EquationSolver::simplify_sign(){
     string simplified_equation;
+
+    if(equation[0] == '+' || equation[0] == '-'){
+        simplified_equation += '0';
+    }
+
     for(int i = 0; i<equation.size(); i++){
         if(equation[i] != '+' && equation[i] != '-'){
             simplified_equation += equation[i];
@@ -127,9 +133,15 @@ void EquationSolver::map_brackets(){
             bracket_stack.push(i);
         }
         else if(x == ')'){
+            if(bracket_stack.empty()){
+                throw invalid_argument("Parenthesis of equation " + equation + " are not balanced");
+            }
             brackets[bracket_stack.top()] = i;
             bracket_stack.pop();
         }
+    }
+    if(!bracket_stack.empty()){
+        throw invalid_argument("Parenthesis of equation " + equation + " are not balanced");
     }
 }
 
