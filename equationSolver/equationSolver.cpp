@@ -3,21 +3,18 @@
 double EquationSolver::operate(){
     map_variables();
     simplify_sign();
-    return solve_equation(text_equation);
+    format_equation();
+    map_brackets();
+    return solve(0, equation.size()-1);
 }
 
-double EquationSolver::solve_equation(string &equation){
-    format_equation(equation);
-    double ans = solve(0, equation.size()-1, equation);
-    return ans;
-}
-
-double EquationSolver::solve(int l, int r, string &equation){
+double EquationSolver::solve(int l, int r){
+    if(brackets.find(l) != brackets.end() && brackets[l] == r){
+        return solve(l+1, r-1);
+    }
     if(l == r){
         if(equation[l] == '?'){
-            double num =numbers[l].top();
-            numbers[l].pop();
-            return num;
+            return numbers[l];
         }
         else{
             return variables[equation[l]];
@@ -26,27 +23,36 @@ double EquationSolver::solve(int l, int r, string &equation){
     
     unordered_map<char, int> op_pos;
     for(int i = l; i<=r; i++){
+        if(equation[i] == '('){
+            i = brackets[i];
+            continue;
+        }
         if(operators.find(equation[i]) != operators.end()){
             op_pos[equation[i]] = i;
         }
     }
 
-    if(op_pos.find('+') != op_pos.end())
-        return solve(l, op_pos['+']-1, equation) + solve(op_pos['+']+1, r, equation);
-    if(op_pos.find('-') != op_pos.end())
-        return solve(l, op_pos['-']-1, equation) - solve(op_pos['-']+1, r, equation);
-    if(op_pos.find('*') != op_pos.end()) 
-        return solve(l, op_pos['*']-1, equation) * solve(op_pos['*']+1, r, equation);
-    if(op_pos.find('/') != op_pos.end())
-        return solve(l, op_pos['/']-1, equation) / solve(op_pos['/']+1, r, equation);
-    if(op_pos.find('^') != op_pos.end())
-        return pow(solve(l, op_pos['^']-1, equation), solve(op_pos['^']+1, r, equation));
+    if(op_pos.find('+') != op_pos.end()){
+        return solve(l, op_pos['+']-1) + solve(op_pos['+']+1, r);
+    }
+    if(op_pos.find('-') != op_pos.end()){
+        return solve(l, op_pos['-']-1) - solve(op_pos['-']+1, r);
+    }
+    if(op_pos.find('*') != op_pos.end()){
+        return solve(l, op_pos['*']-1) * solve(op_pos['*']+1, r);
+    }
+    if(op_pos.find('/') != op_pos.end()){
+        return solve(l, op_pos['/']-1) / solve(op_pos['/']+1, r);
+    }
+    if(op_pos.find('^') != op_pos.end()){
+        return pow(solve(l, op_pos['^']-1), solve(op_pos['^']+1, r));
+    }
 
     return 0;
 }
 
 void EquationSolver::map_variables(){
-    for(char x : text_equation){
+    for(char x : equation){
         if(x < 'a' || x > 'z') continue;
         if(variables.find(x) != variables.end()) continue;
         cout<<"Please insert the value of variable "<<x<<": ";
@@ -56,32 +62,29 @@ void EquationSolver::map_variables(){
 
 void EquationSolver::simplify_sign(){
     string simplified_equation;
-    for(int i = 0; i<text_equation.size(); i++){
-        if(text_equation[i] != '+' && text_equation[i] != '-'){
-            simplified_equation += text_equation[i];
+    for(int i = 0; i<equation.size(); i++){
+        if(equation[i] != '+' && equation[i] != '-'){
+            simplified_equation += equation[i];
             continue;
         }
 
         int negcnt = 0, j;
-        for(j=i; j < text_equation.size() && (text_equation[j] == '+' || text_equation[j] == '-'); j++){
-            if(text_equation[j] == '-') negcnt++;
+        for(j=i; j < equation.size() && (equation[j] == '+' || equation[j] == '-'); j++){
+            if(equation[j] == '-') negcnt++;
         }
 
         if(negcnt%2 == 0) simplified_equation += '+';
         else simplified_equation += '-';
         i = j-1;
     }
-    text_equation = simplified_equation;
+    equation = simplified_equation;
 }
 
-void EquationSolver::format_equation(string &equation){
+void EquationSolver::format_equation(){
     string formated_equation;
     for(int i = 0; i<equation.size(); i++){
         if((equation[i] >= '0' && equation[i] <= '9') || equation[i] == '-' || equation[i] == '+') {
-            map_number(i, equation, formated_equation);
-        }
-        else if(equation[i] == '('){
-            solve_bracket(i, equation, formated_equation);
+            map_number(i, formated_equation);
         }
         else{
             formated_equation += equation[i];
@@ -90,7 +93,7 @@ void EquationSolver::format_equation(string &equation){
     equation = formated_equation;
 }
 
-void EquationSolver::map_number(int &i, string & equation, string &formated_equation){
+void EquationSolver::map_number(int &i, string &formated_equation){
     if(equation[i] == '+'){
         if(i-1 >= 0 && operators.find(equation[i-1]) == operators.end()){
             formated_equation += '+';
@@ -110,24 +113,24 @@ void EquationSolver::map_number(int &i, string & equation, string &formated_equa
     while(i+j < equation.size() && ((equation[i+j] >= '0' && equation[i+j] <= '9') || equation[i+j] == '.')) j++;
 
     double number = stod(equation.substr(i, j));
-    numbers[formated_equation.size()].push(number);
+    numbers[formated_equation.size()] = number;
 
     formated_equation += '?';
     i += j-1;
 }
 
-void EquationSolver::solve_bracket(int &i, string &equation, string &formated_equation){
-    i++;
-    int bracket_count = 0, j = 0;
-    while(bracket_count != 0 || equation[i+j] != ')'){
-        if(equation[i+j] == '(') bracket_count++;
-        if(equation[i+j] == ')') bracket_count--;
-        j++;
+void EquationSolver::map_brackets(){
+    stack<int> bracket_stack;
+    for(int i = 0; i<equation.size(); i++){
+        char x = equation[i];
+        if(x == '('){
+            bracket_stack.push(i);
+        }
+        else if(x == ')'){
+            brackets[bracket_stack.top()] = i;
+            bracket_stack.pop();
+        }
     }
-
-    string subequation = equation.substr(i, j);
-    numbers[formated_equation.size()].push(solve_equation(subequation));
-    formated_equation += '?';
-    i += j;
 }
+
 

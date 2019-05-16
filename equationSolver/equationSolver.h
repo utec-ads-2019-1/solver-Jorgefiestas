@@ -11,13 +11,15 @@ using namespace std;
 
 class EquationSolver{
     private:
-        string text_equation;
-        unordered_map<int, stack<double>> numbers;
+        string equation;
+        unordered_map<int, int> numbers;
         unordered_map<char, double> variables;
+        unordered_map<int, int> brackets;
         unordered_set<char> operators {'+', '-', '*', '/', '^'};
+
     public:
         EquationSolver(string equation){
-            text_equation = equation;
+            this->equation = equation;
         }
 
         static EquationSolver* buildFromEquation(string equation){
@@ -25,13 +27,12 @@ class EquationSolver{
         }
 
         double operate();
-        double solve_equation(string &);
-        double solve(int l, int r, string &);
+        double solve(int l, int r);
 
         void map_variables();
-        void format_equation(string &);
-        void map_number(int &, string &, string &);
-        void solve_bracket(int &, string &, string &);
+        void format_equation();
+        void map_number(int &, string &);
+        void map_brackets();
         void simplify_sign();
 };
 
