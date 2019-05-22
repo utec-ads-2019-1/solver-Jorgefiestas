@@ -12,7 +12,7 @@ using namespace std;
 class EquationSolver{
     private:
         string equation;
-        unordered_map<int, int> numbers;
+        unordered_map<int, double> numbers;
         unordered_map<char, double> variables;
         unordered_map<int, int> brackets;
         unordered_set<char> operators {'+', '-', '*', '/', '^'};

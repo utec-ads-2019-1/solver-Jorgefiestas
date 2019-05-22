@@ -117,7 +117,7 @@ void EquationSolver::map_number(int &i, string &formated_equation){
 
     while(i+j < equation.size() && ((equation[i+j] >= '0' && equation[i+j] <= '9') || equation[i+j] == '.')) j++;
 
-    double number = stod(equation.substr(i, j));
+    double number = stof(equation.substr(i, j));
     numbers[formated_equation.size()] = number;
 
     formated_equation += '?';
