@@ -48,7 +48,6 @@ double EquationSolver::solve(int l, int r){
         return pow(solve(l, op_pos['^']-1), solve(op_pos['^']+1, r));
     }
     
-    throw invalid_argument("There is an error in the equation " + equation + ".");    
     return 0;
 }
 
